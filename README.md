@@ -250,3 +250,19 @@ This repo is made freely available to academic and non-academic entities for non
 ## :e-mail: Author  
 Asher Chan `asher_chan@foxmail.com`
     
+    
+## 4. Local Install
+### Install Conda
+https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
+pathenv: xx\miniconda3\condabin
+
+### PyCharm Config
+settings>Project>Interpreter> Add Conda Environment > Conda executable: _conda.exe 
+
+### Install Microsoft Visual C++ 14.0
+conda install libpython m2w64-toolchain -c msys2
+
+### Install dep
+pip install -r requirements.txt  
+
+  
