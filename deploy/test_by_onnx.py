@@ -63,13 +63,22 @@ def Convert(input_imgs_path, output_path, onnx ="model.onnx", device="cpu"):
     y = session.get_outputs()[0].name
 
     begin = time.time()
+
+    # t = time.time()
+    # sample_image, shape = load_test_data(input_imgs_path, onnx)
+    # image_path = os.path.join(result_dir,'{0}'.format(os.path.basename(input_imgs_path)))
+    # fake_img = session.run(None, {x : sample_image})
+    # save_images(fake_img[0], image_path, (shape[1], shape[0]))
+
     for i, sample_file  in enumerate(test_files) :
-        t = time.time()
         sample_image, shape = load_test_data(sample_file, onnx)
         image_path = os.path.join(result_dir,'{0}'.format(os.path.basename(sample_file)))
+        t = time.time()
         fake_img = session.run(None, {x : sample_image})
+        print(f'Processing image: {i}, image size: {shape[1], shape[0]}, ' + sample_file,
+              f' time: {time.time() - t:.3f} s')
         save_images(fake_img[0], image_path, (shape[1], shape[0]))
-        print(f'Processing image: {i}, image size: {shape[1], shape[0]}, ' + sample_file, f' time: {time.time() - t:.3f} s')
+
     end = time.time()
     print(f'Average time per image : {(end-begin)/len(test_files)} s')
 
@@ -80,6 +89,7 @@ if __name__ == '__main__':
     # output_path = 'AnimeGANv3_Hayao_36'
     # Convert(input_imgs_path, output_path, onnx_file)
 
+    # python deploy/test_by_onnx.py -i inputs/test/anime -o output -m models/AnimeGANv3_Hayao_36.onnx
     arg = parse_args()
     Convert(arg.input_imgs_dir, arg.output_path, arg.model_path, arg.device)
-
+    # print(arg)

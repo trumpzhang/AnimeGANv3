@@ -63,12 +63,12 @@ class test:
 
 if __name__ == '__main__':
     input_size = [512, 512]  # height,width
-    pb_path = r"AnimeGANv3_Hayao_36.pb"
+    pb_path = r"../models/my/AnimeGANv3_Hayao_36.pb"
     tflite_file = pb2tflite(pb_path, input_size)
 
-    img = cv2.imread('img.png')[:,:,::-1] # bgr->rgb
-    test_obj = test(tflite_file, input_size)
-    out = test_obj.run(img)
-    cv2.imwrite('res.jpg', out[:,:,::-1] )
+    # img = cv2.imread('img.png')[:,:,::-1] # bgr->rgb
+    # test_obj = test(tflite_file, input_size)
+    # out = test_obj.run(img)
+    # cv2.imwrite('res.jpg', out[:,:,::-1] )
 
 

@@ -4,14 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-print(tf.__version__)
+# print(tf.__version__)
 tf.compat.v1.enable_eager_execution()
-
 
 
 def testHayao_36():
     # 1. 加载 TensorFlow Lite 模型
-    model_path = 'models/AnimeGANv3_Hayao_36.tflite'
+    # model_path = 'models/AnimeGANv3_Hayao_36.tflite'
+    model_path = 'models/my/AnimeGANv3_Hayao_36.tflite'
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
 
@@ -22,7 +22,7 @@ def testHayao_36():
     # print(output_details)
 
     # 3. 加载图片并进行预处理
-    image_path = 'inputs/test/v3_17.jpg'
+    image_path = 'inputs/test/anime/v3_52.jpg'
     image = Image.open(image_path)
     image = image.resize((input_details[0]['shape'][2], input_details[0]['shape'][1]))
     image = np.expand_dims(image, axis=0)
@@ -55,8 +55,10 @@ def testHayao_36():
 # [Style Transfer]
 # Function to load an image from a file, and add a batch dimension.
 style_predict_path="models/style_transfer/predict_float16.tflite"
-style_path = "inputs/test/style_trans/style.png"
-content_path = "inputs/test/style_trans/content.png"
+style_transform_path="models/style_transfer/transfer_float16.tflite"
+
+style_path = "inputs/test/style_trans/style4.png"
+content_path = "inputs/test/style_trans/man.jpg"
 
 def load_img(path_to_img):
   img = tf.io.read_file(path_to_img)
@@ -73,6 +75,8 @@ def load_img_np(image_path, input_details):
     image = np.expand_dims(image, axis=0)
     return image
 
+style_image = load_img(style_path)
+content_image = load_img(content_path)
 
 # Function to pre-process by resizing an central cropping it.
 def preprocess_image(image, target_dim):
@@ -90,6 +94,18 @@ def preprocess_image(image, target_dim):
 
 
 # Load the input images.
+preprocessed_style_image = preprocess_image(style_image, 256)
+preprocessed_content_image = preprocess_image(content_image, 384)
+
+
+def imshow(image, title=None):
+  if len(image.shape) > 3:
+    image = tf.squeeze(image, axis=0)
+
+  plt.imshow(image)
+  if title:
+    plt.title(title)
+  plt.show()
 
 
 # Function to run style prediction on preprocessed style image.
@@ -106,7 +122,7 @@ def run_style_predict(preprocessed_style_image):
   start_time = time.time()
   interpreter.invoke()
   end_time = time.time()
-  print("Inference Time: {:.2f} seconds".format(end_time - start_time))
+  print("Predict Inference Time: {:.2f} seconds".format(end_time - start_time))
 
 
   style_bottleneck = interpreter.tensor(
@@ -115,14 +131,40 @@ def run_style_predict(preprocessed_style_image):
 
   return style_bottleneck
 
+# Run style transform on preprocessed style image
+def run_style_transform(style_bottleneck, preprocessed_content_image):
+  # Load the model.
+  interpreter = tf.lite.Interpreter(model_path=style_transform_path)
+
+  # Set model input.
+  input_details = interpreter.get_input_details()
+  interpreter.allocate_tensors()
+
+  # Set model inputs.
+  interpreter.set_tensor(input_details[0]["index"], preprocessed_content_image)
+  interpreter.set_tensor(input_details[1]["index"], style_bottleneck)
+  start_time = time.time()
+  interpreter.invoke()
+  inference_time = time.time() - start_time
+  print("Transfer Inference Time: {:.2f} seconds".format(inference_time))
+
+
+  # Transform content image.
+  stylized_image = interpreter.tensor(
+      interpreter.get_output_details()[0]["index"]
+      )()
+
+  return stylized_image
+
+
+
 
 def process_style_img():
-    style_image = load_img(style_path)
-    preprocessed_style_image = preprocess_image(style_image, 256)
     style_bottleneck = run_style_predict(preprocessed_style_image)
-    print('Style Bottleneck Shape:', style_bottleneck.shape)
-
-
+    stylized_image = run_style_transform(style_bottleneck, preprocessed_content_image)
+    # print('stylized_image:', stylized_image)
+    # Visualize the output.
+    imshow(stylized_image, 'Stylized Image')
 
 
 if __name__ == '__main__':
